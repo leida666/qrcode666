@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--csp-->
+    <!--head:start-->
+    <title>QRCode666 — Free QR Code Generator | No Expiration, No Subscription</title>
+    <meta name="description" content="Free static QR code generator. No account, no subscription, no expiration." />
+    <!--head:end-->
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script>
+      // Runs before first paint: apply the theme and decide whether the intro plays.
+      ;(function () {
+        var d = document.documentElement
+        try {
+          var t = localStorage.getItem('qr666-theme')
+          if (t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) d.classList.add('dark')
+        } catch (e) {}
+        try {
+          if (!location.hash && !sessionStorage.getItem('qr666-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+            d.setAttribute('data-intro', 'pending')
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"><!--app-html--></div>
+    <noscript>
+      <p style="max-width:40rem;margin:2rem auto;padding:0 1rem;font-family:system-ui,sans-serif">
+        QRCode666 generates QR codes in your browser with JavaScript. Please enable JavaScript to use the generator.
+        / QRCode666 在浏览器中使用 JavaScript 生成二维码，请启用 JavaScript。
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
