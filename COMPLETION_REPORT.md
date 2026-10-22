@@ -66,6 +66,9 @@ vCard、邮件/电话/短信/位置/日程、空输入（不生成任何二维�
 
 - **已部署到 Cloudflare Pages**（2026-10-22）：项目名 `qrcode666`，地址 https://qrcode666.pages.dev 。D1 数据库 `qrcode666-donations` 已建表。线上验证通过：24 个页面均返回 200，未知页面返回 404，安全响应头齐全，捐款链接 302 跳转到官方页面且点击被正确计数（验证用的 2 条测试记录已删除，统计从零开始）。以后更新网站：先运行 `npm run build`，再运行 `npx wrangler pages deploy --branch main`。
 
+- **正式域名已生效**：https://qrcode666.app 和 https://www.qrcode666.app 均已绑定并签发 HTTPS 证书，http 自动跳转到 https；www 页面的规范链接指向主域名。所有页面、404、安全响应头和捐款跳转均已在正式域名下验证通过。
+- **需要关闭 Cloudflare Web Analytics**：Cloudflare 会自动向该域名下的页面注入统计脚本（`static.cloudflareinsights.com/beacon.min.js`）。我们的安全策略已经拦截了它，没有收集任何数据，但仍应在后台关闭：qrcode666.app → Analytics & Logs → Web Analytics。
+
 ## 主要技术决策
 
 - React 19 + TypeScript + Vite 8 + Tailwind CSS 4。构建时预渲染为静态 HTML，客户端再接管（hydration），无需服务器。

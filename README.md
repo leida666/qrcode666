@@ -208,7 +208,7 @@ Run `npm run build`, then `npx wrangler pages deploy`. Or connect the GitHub rep
 - `dist/404.html` is served, with status 404, for unknown paths.
 - `/zh/` is served from `dist/zh/index.html`.
 
-Leave **Web Analytics** off in the Pages project, so "no trackers" stays literally true.
+Turn **Web Analytics** off, both in the Pages project and for the zone (**qrcode666.app → Analytics & Logs → Web Analytics**). For proxied domains, Cloudflare can inject its analytics beacon automatically. The CSP blocks it, so nothing is collected, but it shows as a console error; turning it off keeps "no trackers" literally true.
 
 ### Donation click counts
 
