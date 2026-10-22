@@ -64,6 +64,8 @@ vCard、邮件/电话/短信/位置/日程、空输入（不生成任何二维�
 
 - **SEO 扩展**：新增 9 个按类型划分的生成器落地页（如 `/wifi-qr-code-generator`、`/vcard-qr-code-generator`，生成器自动预选对应类型）和 2 篇指南（`/do-qr-codes-expire`、`/qr-code-stopped-working`），中英文各一套，共 24 个预渲染页面。每页都有独立的标题、描述、规范链接、hreflang、Open Graph 和结构化数据（应用、常见问题、面包屑、文章）；页脚链接到所有页面；sitemap 自动生成。从搜索进入落地页的访客不再自动播放开场动画。为满足对比度要求，次要灰色文字加深（无障碍评分恢复 100）。站外推广清单见 README “SEO: getting found”。
 
+- **已部署到 Cloudflare Pages**（2026-10-22）：项目名 `qrcode666`，地址 https://qrcode666.pages.dev 。D1 数据库 `qrcode666-donations` 已建表。线上验证通过：24 个页面均返回 200，未知页面返回 404，安全响应头齐全，捐款链接 302 跳转到官方页面且点击被正确计数（验证用的 2 条测试记录已删除，统计从零开始）。以后更新网站：先运行 `npm run build`，再运行 `npx wrangler pages deploy --branch main`。
+
 ## 主要技术决策
 
 - React 19 + TypeScript + Vite 8 + Tailwind CSS 4。构建时预渲染为静态 HTML，客户端再接管（hydration），无需服务器。

@@ -8,5 +8,5 @@ compatibility_date = "2026-10-01"
 [[d1_databases]]
 binding = "DONATIONS_DB"
 database_name = "qrcode666-donations"
-database_id = "00000000-0000-0000-0000-000000000000" # replaced by the real id from `wrangler d1 create`
+database_id = "b5b62d04-9f52-43a0-8b42-9a890587f247"
 migrations_dir = "migrations"
