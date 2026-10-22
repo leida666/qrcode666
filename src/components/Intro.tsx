@@ -192,7 +192,7 @@ function IntroOverlay({ onDone }: { onDone: () => void }) {
         {scene >= 2 && (
           <div className={sceneClass(2) + ' flex flex-col items-center text-center'}>
             <span className="intro-rise mb-6" style={delay(0)}>
-              <Mark className="size-14 text-white sm:size-16" accent="#4d73ff" />
+              <Mark className="size-16 sm:size-20" />
             </span>
             <p className="intro-rise font-display text-[clamp(3rem,11vw,9.5rem)] font-semibold leading-[0.95] tracking-[-0.055em]" style={delay(100)}>
               QRCode<span className="text-[#5b7cff]">666</span>.

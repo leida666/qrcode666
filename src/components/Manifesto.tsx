@@ -30,7 +30,7 @@ export function Manifesto() {
         </div>
         <div className="mt-20 flex flex-col items-start gap-6 border-t border-white/10 pt-12 sm:flex-row sm:items-center sm:justify-between">
           <p className="font-serif text-[clamp(1.9rem,4.5vw,3.4rem)] italic leading-[1.1] tracking-[-0.01em]">{m.signoff}</p>
-          <Mark className="size-12 shrink-0 text-white" accent="#4d73ff" />
+          <Mark className="size-14 shrink-0" label="QRCode666 — scans to qrcode666.app" />
         </div>
       </div>
     </section>

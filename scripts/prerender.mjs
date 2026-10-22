@@ -150,8 +150,8 @@ const notFound = `<!doctype html>
   </head>
   <body>
     <main class="mx-auto flex min-h-svh max-w-3xl flex-col justify-center px-6 py-24">
-      <a href="/" class="mb-16 inline-flex items-center gap-2.5 text-[17px] font-semibold tracking-[-0.03em]">
-        <img src="/logo.svg" alt="" width="22" height="22" class="dark:invert" />QRCode<span class="text-accent">666</span>
+      <a href="/" class="mb-16 inline-flex items-center gap-2.5 text-[16px] font-extrabold tracking-[-0.01em]">
+        <img src="/logo.svg" alt="" width="30" height="30" class="rounded-[7px]" />QRCODE<span class="text-accent">666</span>
       </a>
       <p class="font-mono text-sm text-accent">404</p>
       <h1 class="font-display mt-4 text-[clamp(2.4rem,7vw,4.5rem)] font-semibold leading-[1.02]">${esc(en.title)}</h1>

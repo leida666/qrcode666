@@ -313,3 +313,11 @@ test('Chinese pages tag donation clicks with zh', async ({ page }) => {
   await hydrated(page)
   await expect(page.locator('#donate').getByTestId('donate-unicef')).toHaveAttribute('href', '/donate/unicef?lang=zh')
 })
+
+test('donation links still reach the charity where the counting Function is absent', async ({ page }) => {
+  // vite preview has no Cloudflare Function, so the page's boot script redirects.
+  await page.route('https://help.unicef.org/**', (route) => route.fulfill({ status: 200, body: 'unicef stub' }))
+  await page.goto('/donate/unicef?lang=en')
+  await expect(page).toHaveURL('https://help.unicef.org/global/donate')
+  await expect(page.getByText('unicef stub')).toBeVisible()
+})

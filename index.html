@@ -17,6 +17,13 @@
     <script>
       // Runs before first paint: apply the theme and decide whether the intro plays.
       ;(function () {
+        // /donate/<org> is normally answered by the Cloudflare Function (count +
+        // redirect). Where that Function doesn't run (local preview, other hosts)
+        // the page itself is served, so redirect here, before anything renders.
+        // Keep in sync with src/lib/donate.ts (checked by tests/unit/brand.test.ts).
+        var donate = { unicef: 'https://help.unicef.org/global/donate', wfp: 'https://www.wfp.org/donate' }
+        var m = /^\/donate\/(unicef|wfp)\/?$/.exec(location.pathname)
+        if (m) return location.replace(donate[m[1]])
         var d = document.documentElement
         try {
           var t = localStorage.getItem('qr666-theme')

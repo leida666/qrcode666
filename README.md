@@ -65,7 +65,7 @@ It's used in canonical URLs, Open Graph tags, the sitemap and robots.txt.
 
 QR output is verified by **decoding it**, not by checking that an image exists.
 
-- **Unit + decode tests** (`tests/unit`, 110 tests): payload builders (Wi-Fi escaping, vCard, iCalendar,
+- **Unit + decode tests** (`tests/unit`, 114 tests): payload builders (Wi-Fi escaping, vCard, iCalendar,
   `mailto:`, `tel:`, `SMSTO:`, `geo:`), URL handling, contrast checks capacity limits, and the donation counter Function (counts only org/day/language, ignores HEAD and unknown orgs, still redirects if the database is down). Every QR case is
   rendered to SVG, rasterised with resvg and decoded by two independent decoders, **jsQR** and **ZXing**.
   The decoded text must match the payload exactly. Covered: plain, long and query-heavy URLs, Chinese,
@@ -73,7 +73,7 @@ QR output is verified by **decoding it**, not by checking that an image exists.
   types at the capacity limit (exactly `MAX_BYTES` fits, one more byte is rejected), every module × eye ×
   EC combination at several pixel sizes, every preset, transparent backgrounds, tiny quiet zones, and logos
   at the maximum allowed size.
-- **End-to-end tests** (`tests/e2e`, 43 tests, Playwright with the locally installed Microsoft Edge):
+- **End-to-end tests** (`tests/e2e`, 44 tests, Playwright with the locally installed Microsoft Edge):
   real downloads of PNG (all four sizes) and SVG, each decoded with jsQR + ZXing; URL, long URL, Chinese,
   emoji, special characters, Wi-Fi, vCard; empty input; over-capacity input; logo upload; presets;
   transparent PNG alpha; low-contrast blocking; **no network requests** while typing, uploading and
@@ -186,8 +186,8 @@ npx wrangler d1 execute qrcode666-donations --remote --command "SELECT org, SUM(
 
 To try it locally, apply the migration with `--local`, then run `npx wrangler pages dev dist`.
 
-On a host other than Cloudflare Pages, the Function won't run. Either remove `donateHref` in
-`src/lib/donate.ts` and link straight to the charities, or add equivalent redirects.
+Where the Function doesn't run (`npm run preview`, other hosts), the page's boot script sees `/donate/<org>` and
+redirects to the charity before anything renders. The link still works, but that click isn't counted.
 
 ## Custom domain (qrcode666.app)
 
@@ -247,10 +247,20 @@ tests/e2e        Playwright: real browser, real downloads, decoded
 
 ## The logo
 
-Three QR finder patterns, each extended into a "6", placed where a QR code's finders sit, with one blue accent
-module in the data corner: QR + 666 in one mark. Variants are in `public/`: `logo.svg`, `favicon.svg` (adapts to
-light/dark browser UI), `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, and `avatar.png`
-(1024 px, for GitHub and social profiles).
+The mark is itself a working QR code: it encodes `https://qrcode666.app` (error correction H, version 3),
+with blue finder centres and a "666" plate in the middle. It's based on the original artwork in
+`brand/original-artwork.webp` and rebuilt as clean vector data by `scripts/generate-mark.mjs`, which
+writes `src/brand/mark.ts`.
+
+`tests/unit/brand.test.ts` requires it to decode with both jsQR and ZXing at every size from 140 to 1200 px.
+That sweep is why the blue is the site accent `#1d4bff`, not the artwork's azure `#019eff`. To a camera, the
+azure in the finder centres reads as mid-grey, and jsQR missed about 15 % of sizes. The electric blue passes
+them all.
+
+Files in `public/`: `logo.svg`, `favicon.svg`, `favicon.ico`, `icon-192.png`, `icon-512.png`,
+`icon-maskable-512.png`, `apple-touch-icon.png`, `avatar.png` (1024 px, mark plus wordmark, for GitHub and
+social profiles), and `og-image.png`. Regenerate them with `node scripts/generate-mark.mjs`, then
+`npm run assets`.
 
 ## Ideas for later
 
