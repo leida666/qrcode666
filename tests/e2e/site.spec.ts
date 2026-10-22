@@ -321,3 +321,9 @@ test('donation links still reach the charity where the counting Function is abse
   await expect(page).toHaveURL('https://help.unicef.org/global/donate')
   await expect(page.getByText('unicef stub')).toBeVisible()
 })
+
+test('the footer links to the public source code', async ({ page }) => {
+  await skipIntro(page)
+  await page.goto('/')
+  await expect(page.locator('footer').getByTestId('repo-link')).toHaveAttribute('href', 'https://github.com/leida666/qrcode666')
+})

@@ -4,6 +4,7 @@ import { CharityLinks } from './Donate'
 import { LanguageSwitch } from './Header'
 import { useIntro } from './Intro'
 import { Logo } from './Logo'
+import { REPO_URL } from '../site'
 import { GeneratorLinks, GuideLinks } from './SeoPages'
 
 export function Footer() {
@@ -55,7 +56,10 @@ export function Footer() {
         </nav>
         <div className="mt-12 flex flex-col gap-2 border-t border-line pt-6 text-[12.5px] text-subtle sm:flex-row sm:justify-between">
           <p>
-            © {new Date().getFullYear()} QRCode666 · {t.footer.license}
+            © {new Date().getFullYear()} QRCode666 ·{' '}
+            <a href={REPO_URL} className="underline decoration-line-strong underline-offset-4 hover:text-fg" data-testid="repo-link">
+              {t.footer.license}
+            </a>
           </p>
           <p>{t.footer.trademark}</p>
         </div>

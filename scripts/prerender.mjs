@@ -12,7 +12,7 @@ const dist = path.join(root, 'dist')
 const SITE = (process.env.SITE_URL || 'https://qrcode666.app').replace(/\/$/, '')
 const OG_LOCALE = { en: 'en_US', zh: 'zh_CN' }
 
-const { render, DICTS, HTML_LANG, ALL_PAGES, pageMeta, pagePath, pageSlug } = await import(pathToFileURL(path.join(root, 'node_modules', '.cache', 'ssr', 'entry-server.js')).href)
+const { render, DICTS, HTML_LANG, ALL_PAGES, pageMeta, pagePath, pageSlug, REPO_URL } = await import(pathToFileURL(path.join(root, 'node_modules', '.cache', 'ssr', 'entry-server.js')).href)
 const template = readFileSync(path.join(dist, 'index.html'), 'utf8')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -41,7 +41,14 @@ const today = new Date().toISOString().slice(0, 10)
 /** First publication date of the guides (dateModified is the build date). */
 const ARTICLE_PUBLISHED = '2026-10-22'
 const abs = (p) => SITE + p
-const org = { '@type': 'Organization', '@id': `${SITE}/#org`, name: 'QRCode666', url: `${SITE}/`, logo: `${SITE}/avatar.png` }
+const org = {
+  '@type': 'Organization',
+  '@id': `${SITE}/#org`,
+  name: 'QRCode666',
+  url: `${SITE}/`,
+  logo: `${SITE}/avatar.png`,
+  sameAs: [REPO_URL],
+}
 const website = {
   '@type': 'WebSite',
   '@id': `${SITE}/#website`,
@@ -77,6 +84,7 @@ const app = (lang, url, name, description) => ({
   license: 'https://opensource.org/license/mit',
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   publisher: { '@id': `${SITE}/#org` },
+  sameAs: [REPO_URL],
 })
 
 function structuredData(lang, pg, url) {

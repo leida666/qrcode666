@@ -2,7 +2,7 @@
 
 **Free QR Codes. Forever. No Subscriptions. No Bullshit.**
 
-QRCode666 ([qrcode666.app](https://qrcode666.app)) is a free, static QR code generator. Every code it makes
+QRCode666 ([qrcode666.app](https://qrcode666.app), source on [GitHub](https://github.com/leida666/qrcode666)) is a free, static QR code generator. Every code it makes
 stores your content directly — the URL, text, Wi-Fi details or contact card — so it never depends
 on this website, a redirect service or a subscription. Codes are generated in your browser; nothing
 you type is sent anywhere.
