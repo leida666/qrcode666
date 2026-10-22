@@ -33,7 +33,7 @@ you type is sent anywhere.
 | Say thanks (not to us) | A "Donate" section lets visitors choose UNICEF or the World Food Programme; the same two links appear in the footer and in a quiet note after each download. Links pass through `/donate/<org>`, which counts the click anonymously (organisation, day, page language — nothing about the person) and redirects to the official donation page. No tracking parameters, no referrer, no affiliation, and QRCode666 receives nothing |
 | i18n | English (default) and Simplified Chinese, pre-rendered at `/` and `/zh/`, auto-detected from the browser language, switchable and remembered |
 | Themes | Light, dark and system, applied before first paint |
-| SEO | Per-language title/description, canonical + hreflang, Open Graph and X cards, JSON-LD (`WebApplication`, `WebSite`, `FAQPage`), sitemap, robots.txt, web manifest, favicons, 404 page |
+| SEO | 24 pre-rendered pages (home, 9 per-type generator pages, 2 guides; English and Chinese), each with its own title, description, canonical + hreflang, Open Graph and X cards and JSON-LD; footer links to every page; sitemap, robots.txt, web manifest, favicons, 404 page. See **SEO: getting found** |
 
 ## Quick start
 
@@ -65,7 +65,7 @@ It's used in canonical URLs, Open Graph tags, the sitemap and robots.txt.
 
 QR output is verified by **decoding it**, not by checking that an image exists.
 
-- **Unit + decode tests** (`tests/unit`, 114 tests): payload builders (Wi-Fi escaping, vCard, iCalendar,
+- **Unit + decode tests** (`tests/unit`, 115 tests): payload builders (Wi-Fi escaping, vCard, iCalendar,
   `mailto:`, `tel:`, `SMSTO:`, `geo:`), URL handling, contrast checks capacity limits, and the donation counter Function (counts only org/day/language, ignores HEAD and unknown orgs, still redirects if the database is down). Every QR case is
   rendered to SVG, rasterised with resvg and decoded by two independent decoders, **jsQR** and **ZXing**.
   The decoded text must match the payload exactly. Covered: plain, long and query-heavy URLs, Chinese,
@@ -73,14 +73,14 @@ QR output is verified by **decoding it**, not by checking that an image exists.
   types at the capacity limit (exactly `MAX_BYTES` fits, one more byte is rejected), every module × eye ×
   EC combination at several pixel sizes, every preset, transparent backgrounds, tiny quiet zones, and logos
   at the maximum allowed size.
-- **End-to-end tests** (`tests/e2e`, 44 tests, Playwright with the locally installed Microsoft Edge):
+- **End-to-end tests** (`tests/e2e`, 59 tests, Playwright with the locally installed Microsoft Edge):
   real downloads of PNG (all four sizes) and SVG, each decoded with jsQR + ZXing; URL, long URL, Chinese,
   emoji, special characters, Wi-Fi, vCard; empty input; over-capacity input; logo upload; presets;
   transparent PNG alpha; low-contrast blocking; **no network requests** while typing, uploading and
   downloading (and the CSP really blocks `fetch`); intro playback, timing, skip, Esc, replay and
   reduced motion; language switching, auto-detection and localised errors; light/dark themes; mobile
   layout with no horizontal scroll; keyboard-only use; SEO metadata, sitemap, manifest and 404; and the
-  hero animation really scanning; donation links (via the counter, per language, new tab, no referrer) and the post-download thank-you note.
+  hero animation really scanning; every landing page and guide (own title, canonical, hreflang, one H1, structured data, clean hydration, preset type, a real Wi-Fi code from the Wi-Fi page, language switching that stays on the page, sitemap with all 24 URLs); donation links (via the counter, per language, new tab, no referrer) and the post-download thank-you note.
 
 To run the e2e tests with Playwright's bundled Chromium instead of Edge:
 
@@ -105,6 +105,56 @@ Mobile: FCP 1.4 s, LCP 2.2 s, TBT 10 ms, CLS 0.
 \* The only failing SEO audit is `robots-txt`: Lighthouse fetches `robots.txt` from inside the page, and our
 privacy CSP (`connect-src 'none'`) blocks that fetch. Search engines request `robots.txt` directly, and it is
 served normally. We keep the CSP: it is what guarantees your input can't leave the page.
+
+## SEO: getting found
+
+### What's built in
+
+- **24 pre-rendered pages**: the home page, a landing page for each of the 9 QR types (for example
+  `/wifi-qr-code-generator` and `/vcard-qr-code-generator`, with the generator preset to that type), and 2 guides
+  written for the searches people make after a paid code dies on them: `/do-qr-codes-expire` and
+  `/qr-code-stopped-working`. Each exists in English and at `/zh/…` in Chinese.
+- **Every page has**:
+  - its own title and description, a single H1, and its own copy and FAQ;
+  - a canonical URL and `hreflang` pairs;
+  - Open Graph and X cards;
+  - JSON-LD: `Organization`, `WebSite`, plus `WebApplication` + `FAQPage` + `BreadcrumbList` on generator pages and
+    `Article` + `BreadcrumbList` on guides.
+- **Internal links**: the footer on every page links to all generators and guides, and each landing page links to
+  its siblings.
+- **Search visitors go straight to the tool**: the intro only autoplays on the home page.
+- **Speed and accessibility**: mobile Lighthouse performance is 98–99, and accessibility is 100 on every page
+  checked.
+
+Copy lives in `src/i18n/seo.en.ts` and `src/i18n/seo.zh.ts`, and URLs in `src/pages.ts`. To add a page, add it there;
+the prerender script, sitemap and footer pick it up automatically.
+
+### What has to happen off the site (this is what moves rankings)
+
+Ranking for a head term like "qr code" or "free qr code generator" depends mostly on links from other sites and on
+time. The on-page work above makes the site eligible; these steps make it known.
+
+1. **Google Search Console**: add the domain property (Cloudflare can add the DNS TXT record for you), then submit
+   `https://qrcode666.app/sitemap.xml`. Use "URL inspection → Request indexing" for the home page and the Wi-Fi,
+   vCard and URL pages.
+2. **Bing Webmaster Tools**: import the site from Search Console. Bing also powers DuckDuckGo, Yahoo and several
+   AI search tools.
+3. **Cloudflare Crawler Hints**: turn this on (**Caching → Configuration**). It pings search engines via IndexNow
+   whenever content changes.
+4. **Earn the first links**, honestly:
+   - a public GitHub repository with the site as its homepage and topics such as `qr-code` and `qr-code-generator`;
+   - Show HN on Hacker News;
+   - Product Hunt;
+   - a listing on AlternativeTo as an alternative to subscription QR generators;
+   - lists of free tools for developers;
+   - relevant Reddit communities (follow each subreddit's self-promotion rules).
+
+   The "Created out of spite" story is the pitch.
+5. **Chinese search**: Bing and Google index the `/zh/` pages normally. Baidu indexes sites hosted outside mainland
+   China slowly, and hosting inside China requires ICP filing. Submitting the sitemap in Baidu's webmaster tools
+   still helps.
+6. **Expect the long tail first**: "wifi qr code generator", "qr code no subscription" and "do qr codes expire"
+   usually rank within weeks to months. "qr code" on its own takes much longer, if it happens at all.
 
 ## Deploying to Cloudflare Pages
 
@@ -234,8 +284,10 @@ redirects to the charity before anything renders. The link still works, but that
 ```
 src/
   lib/qr/        payload builders, encoder, renderer, quality checks, PNG/SVG export
-  components/    intro, header, hero, generator (content, style, preview), education, manifesto, FAQ, footer
-  i18n/          en.ts, zh.ts (typed: zh must match en's shape)
+  components/    intro, header, hero, generator (content, style, preview), education, manifesto, FAQ,
+                 donate, footer, SeoPages (landing pages, guides, breadcrumbs, link lists)
+  i18n/          en.ts, zh.ts, seo.en.ts, seo.zh.ts (typed: zh must match en's shape)
+  pages.ts       every page and its URL
   brand/mark.ts  the logo, shared by the app and the asset script
 functions/       Cloudflare Pages Function: /donate/<org> anonymous click counter + redirect
 migrations/      D1 schema for the click counts

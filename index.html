@@ -30,7 +30,10 @@
           if (t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) d.classList.add('dark')
         } catch (e) {}
         try {
-          if (!location.hash && !sessionStorage.getItem('qr666-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+          // Autoplay only on the home page: visitors landing on a generator or guide
+          // from search want the tool right away.
+          var home = /^\/(zh\/?)?$/.test(location.pathname)
+          if (home && !location.hash && !sessionStorage.getItem('qr666-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches)
             d.setAttribute('data-intro', 'pending')
         } catch (e) {}
       })()

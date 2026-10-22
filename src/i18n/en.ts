@@ -1,4 +1,7 @@
+import { seoEn } from './seo.en'
+
 export const en = {
+  seo: seoEn,
   meta: {
     title: 'QRCode666 — Free QR Code Generator | No Expiration, No Subscription',
     description:

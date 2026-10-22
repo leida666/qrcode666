@@ -1,6 +1,8 @@
 import type { Dict } from './en'
+import { seoZh } from './seo.zh'
 
 export const zh: Dict = {
+  seo: seoZh,
   meta: {
     title: 'QRCode666 — 免费二维码生成器 | 永久有效，无需订阅',
     description:

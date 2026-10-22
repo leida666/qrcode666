@@ -204,6 +204,8 @@ export function escapeWifi(value: string): string {
 }
 
 export function buildWifi(d: WifiData): PayloadResult {
+  // An untouched form is just empty, not an error.
+  if (!d.ssid && !d.password) return fail('empty')
   if (!d.ssid) return fail('wifiSsidRequired')
   if (d.security !== 'nopass' && !d.password) return fail('wifiPasswordRequired')
   let out = `WIFI:T:${d.security};S:${escapeWifi(d.ssid)};`
@@ -267,6 +269,7 @@ export function buildVCard(d: VCardData): PayloadResult {
   const first = d.firstName.trim()
   const last = d.lastName.trim()
   const org = d.organization.trim()
+  if (Object.values(d).every((v) => !v.trim())) return fail('empty')
   if (!first && !last && !org) return fail('vcardNameRequired')
   const e = escapeVCard
   const fullName = [first, last].filter(Boolean).join(' ') || org

@@ -1,15 +1,17 @@
 import { StrictMode } from 'react'
 import { renderToString } from 'react-dom/server'
 import { App } from './App'
-import { DICTS, HTML_LANG, type Lang } from './i18n'
+import { DICTS, HTML_LANG, pageMeta, type Lang } from './i18n'
+import { ALL_PAGES, pagePath, pageSlug, type PageId } from './pages'
+import { CONTENT_TYPES } from './lib/qr/payload'
 
-export { DICTS, HTML_LANG }
+export { ALL_PAGES, CONTENT_TYPES, DICTS, HTML_LANG, pageMeta, pagePath, pageSlug }
 
-/** Pre-renders the full page for a language at build time (static HTML, no server at runtime). */
-export function render(lang: Lang): string {
+/** Pre-renders a page in a language at build time (static HTML, no server at runtime). */
+export function render(lang: Lang, page: PageId): string {
   return renderToString(
     <StrictMode>
-      <App lang={lang} />
+      <App lang={lang} page={page} />
     </StrictMode>,
   )
 }

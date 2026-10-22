@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { pagePath, type PageId } from '../pages'
 import { en, type Dict } from './en'
 import { zh } from './zh'
 
 export type Lang = 'en' | 'zh'
 export const LANGS: Lang[] = ['en', 'zh']
 export const DICTS: Record<Lang, Dict> = { en, zh }
-export const LANG_PATH: Record<Lang, string> = { en: '/', zh: '/zh/' }
 export const HTML_LANG: Record<Lang, string> = { en: 'en', zh: 'zh-CN' }
 
 const STORAGE_KEY = 'qr666-lang'
@@ -13,6 +13,7 @@ const STORAGE_KEY = 'qr666-lang'
 interface I18nValue {
   lang: Lang
   t: Dict
+  page: PageId
   setLang: (lang: Lang) => void
 }
 
@@ -20,6 +21,14 @@ const I18nContext = createContext<I18nValue | null>(null)
 
 export function langFromPath(pathname: string): Lang {
   return /^\/zh(\/|$)/.test(pathname) ? 'zh' : 'en'
+}
+
+/** Title and description for a page in a language. */
+export function pageMeta(page: PageId, lang: Lang): { title: string; description: string } {
+  const t = DICTS[lang]
+  if (page.kind === 'type') return t.seo.types[page.type]
+  if (page.kind === 'article') return t.seo.articles[page.id]
+  return t.meta
 }
 
 function readStored(): Lang | null {
@@ -31,33 +40,35 @@ function readStored(): Lang | null {
   }
 }
 
-function applyDocument(lang: Lang) {
-  const t = DICTS[lang]
+function applyDocument(page: PageId, lang: Lang) {
+  const meta = pageMeta(page, lang)
   document.documentElement.lang = HTML_LANG[lang]
-  document.title = t.meta.title
-  document.querySelector('meta[name="description"]')?.setAttribute('content', t.meta.description)
+  document.title = meta.title
+  document.querySelector('meta[name="description"]')?.setAttribute('content', meta.description)
 }
 
-export function I18nProvider({ initialLang, children }: { initialLang: Lang; children: ReactNode }) {
+export function I18nProvider({ initialLang, page, children }: { initialLang: Lang; page: PageId; children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initialLang)
 
-  const setLang = useCallback((next: Lang, persist = true) => {
-    setLangState(next)
-    if (persist) {
-      try {
-        localStorage.setItem(STORAGE_KEY, next)
-      } catch {
-        /* storage unavailable — the choice just won't be remembered */
+  const setLang = useCallback(
+    (next: Lang, persist = true) => {
+      setLangState(next)
+      if (persist) {
+        try {
+          localStorage.setItem(STORAGE_KEY, next)
+        } catch {
+          /* storage unavailable — the choice just won't be remembered */
+        }
       }
-    }
-    applyDocument(next)
-    const path = LANG_PATH[next]
-    if (location.pathname !== path && (location.pathname === '/' || /^\/zh\/?$/.test(location.pathname))) {
-      history.replaceState(history.state, '', path + location.search + location.hash)
-    }
-  }, [])
+      applyDocument(page, next)
+      // Stay on the same page, in the other language.
+      const path = pagePath(page, next)
+      if (location.pathname !== path) history.replaceState(history.state, '', path + location.search + location.hash)
+    },
+    [page],
+  )
 
-  // On the default (English) URL, honour a saved choice, else the browser language.
+  // On the default (English) home URL, honour a saved choice, else the browser language.
   useEffect(() => {
     if (initialLang !== 'en' || location.pathname !== '/') return
     const browser = navigator.languages?.[0] ?? navigator.language ?? ''
@@ -65,7 +76,7 @@ export function I18nProvider({ initialLang, children }: { initialLang: Lang; chi
     if (preferred === 'zh') setLang('zh', false)
   }, [initialLang, setLang])
 
-  const value = useMemo(() => ({ lang, t: DICTS[lang], setLang: (l: Lang) => setLang(l) }), [lang, setLang])
+  const value = useMemo(() => ({ lang, t: DICTS[lang], page, setLang: (l: Lang) => setLang(l) }), [lang, page, setLang])
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 

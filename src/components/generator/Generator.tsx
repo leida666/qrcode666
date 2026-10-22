@@ -7,10 +7,11 @@ import { ContentForm, TypePicker } from './ContentForm'
 import { Preview } from './Preview'
 import { StylePanel, type LogoState } from './StylePanel'
 
-export function Generator() {
+/** `initialType` presets the content type (landing pages); `heading` hides the section title where the page's H1 already says it. */
+export function Generator({ initialType = 'url', heading = true }: { initialType?: ContentType; heading?: boolean }) {
   const { t } = useI18n()
   const g = t.generator
-  const [type, setType] = useState<ContentType>('url')
+  const [type, setType] = useState<ContentType>(initialType)
   const [data, setData] = useState<PayloadData>(EMPTY_DATA)
   const [style, setStyleState] = useState<QrStyle>(DEFAULT_STYLE)
   const [logo, setLogo] = useState<LogoState | null>(null)
@@ -33,10 +34,16 @@ export function Generator() {
 
   return (
     <section id="generator" aria-labelledby="generator-title" className="scroll-mt-16 border-t border-line bg-sunken/60">
-      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-        <SectionHeading id="generator-title" eyebrow={g.eyebrow} title={g.title} subtitle={g.subtitle} />
+      <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${heading ? 'py-20 lg:py-28' : 'pb-20 pt-8 lg:pb-28 lg:pt-10'}`}>
+        {heading ? (
+          <SectionHeading id="generator-title" eyebrow={g.eyebrow} title={g.title} subtitle={g.subtitle} />
+        ) : (
+          <h2 id="generator-title" className="sr-only">
+            {g.title}
+          </h2>
+        )}
 
-        <div className="mt-12 grid gap-5 [grid-template-areas:'content'_'preview'_'style'] lg:grid-cols-[minmax(0,1fr)_400px] lg:[grid-template-areas:'content_preview'_'style_preview'] xl:grid-cols-[minmax(0,1fr)_440px]">
+        <div className={`${heading ? 'mt-12' : ''} grid gap-5 [grid-template-areas:'content'_'preview'_'style'] lg:grid-cols-[minmax(0,1fr)_400px] lg:[grid-template-areas:'content_preview'_'style_preview'] xl:grid-cols-[minmax(0,1fr)_440px]`}>
           <div className="rounded-[24px] border border-line bg-surface p-5 shadow-[0_1px_2px_rgb(0_0_0/0.03)] [grid-area:content] sm:p-7">
             <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.12em] text-subtle">{g.contentTitle}</h3>
             <TypePicker value={type} onChange={setType} />

@@ -1,6 +1,7 @@
 // Post-build step: turns the client build into fully pre-rendered static pages
-// (/, /zh/, /404.html) with per-language SEO metadata, structured data and a
-// Content-Security-Policy that forbids the page from making network requests.
+// — home, one landing page per QR type and the guides, each in English and
+// Chinese, plus /404.html — with per-page SEO metadata, structured data, a
+// sitemap and a Content-Security-Policy that forbids network requests.
 import { createHash } from 'node:crypto'
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
@@ -9,10 +10,9 @@ import path from 'node:path'
 const root = path.resolve(import.meta.dirname, '..')
 const dist = path.join(root, 'dist')
 const SITE = (process.env.SITE_URL || 'https://qrcode666.app').replace(/\/$/, '')
-const PATHS = { en: '/', zh: '/zh/' }
 const OG_LOCALE = { en: 'en_US', zh: 'zh_CN' }
 
-const { render, DICTS, HTML_LANG } = await import(pathToFileURL(path.join(root, 'node_modules', '.cache', 'ssr', 'entry-server.js')).href)
+const { render, DICTS, HTML_LANG, ALL_PAGES, pageMeta, pagePath, pageSlug } = await import(pathToFileURL(path.join(root, 'node_modules', '.cache', 'ssr', 'entry-server.js')).href)
 const template = readFileSync(path.join(dist, 'index.html'), 'utf8')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -37,23 +37,101 @@ const csp = [
 ].join('; ')
 const cspTag = `<meta http-equiv="Content-Security-Policy" content="${csp}" />`
 
-function head(lang) {
+const today = new Date().toISOString().slice(0, 10)
+/** First publication date of the guides (dateModified is the build date). */
+const ARTICLE_PUBLISHED = '2026-10-22'
+const abs = (p) => SITE + p
+const org = { '@type': 'Organization', '@id': `${SITE}/#org`, name: 'QRCode666', url: `${SITE}/`, logo: `${SITE}/avatar.png` }
+const website = {
+  '@type': 'WebSite',
+  '@id': `${SITE}/#website`,
+  name: 'QRCode666',
+  url: `${SITE}/`,
+  inLanguage: ['en', 'zh-CN'],
+  publisher: { '@id': `${SITE}/#org` },
+}
+const faqLd = (url, lang, items) => ({
+  '@type': 'FAQPage',
+  '@id': `${url}#faq`,
+  inLanguage: HTML_LANG[lang],
+  mainEntity: items.map((i) => ({ '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a } })),
+})
+const breadcrumbs = (lang, name, url) => ({
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: DICTS[lang].seo.ui.home, item: abs(pagePath({ kind: 'home' }, lang)) },
+    { '@type': 'ListItem', position: 2, name, item: url },
+  ],
+})
+const app = (lang, url, name, description) => ({
+  '@type': 'WebApplication',
+  '@id': `${url}#app`,
+  name,
+  url,
+  description,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any (web browser)',
+  browserRequirements: 'Requires JavaScript',
+  inLanguage: HTML_LANG[lang],
+  isAccessibleForFree: true,
+  license: 'https://opensource.org/license/mit',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  publisher: { '@id': `${SITE}/#org` },
+})
+
+function structuredData(lang, pg, url) {
   const t = DICTS[lang]
-  const url = SITE + PATHS[lang]
+  const graph = [org, website]
+  if (pg.kind === 'home') {
+    graph.push({ ...app(lang, url, 'QRCode666', t.meta.description), featureList: Object.values(t.generator.types).join(', ') })
+    graph.push(faqLd(url, lang, t.faq.items))
+  } else if (pg.kind === 'type') {
+    const p = t.seo.types[pg.type]
+    graph.push(app(lang, url, p.h1, p.description), faqLd(url, lang, p.faq), breadcrumbs(lang, p.h1, url))
+  } else {
+    const a = t.seo.articles[pg.id]
+    graph.push(
+      {
+        '@type': 'Article',
+        '@id': `${url}#article`,
+        headline: a.h1,
+        description: a.description,
+        inLanguage: HTML_LANG[lang],
+        mainEntityOfPage: url,
+        image: `${SITE}/og-image.png`,
+        datePublished: ARTICLE_PUBLISHED,
+        dateModified: today,
+        author: { '@id': `${SITE}/#org` },
+        publisher: { '@id': `${SITE}/#org` },
+      },
+      breadcrumbs(lang, a.nav, url),
+    )
+  }
+  return jsonLd({ '@context': 'https://schema.org', '@graph': graph })
+}
+
+function head(lang, pg) {
+  const t = DICTS[lang]
+  const meta = pageMeta(pg, lang)
+  const url = abs(pagePath(pg, lang))
+  const enUrl = abs(pagePath(pg, 'en'))
+  const zhUrl = abs(pagePath(pg, 'zh'))
+  const ogTitle = pg.kind === 'home' ? t.meta.ogTitle : meta.title
+  const ogDescription = pg.kind === 'home' ? t.meta.ogDescription : meta.description
   const image = `${SITE}/og-image.png`
   const tags = [
-    `<title>${esc(t.meta.title)}</title>`,
-    `<meta name="description" content="${esc(t.meta.description)}" />`,
+    `<title>${esc(meta.title)}</title>`,
+    `<meta name="description" content="${esc(meta.description)}" />`,
     `<link rel="canonical" href="${url}" />`,
-    `<link rel="alternate" hreflang="en" href="${SITE}/" />`,
-    `<link rel="alternate" hreflang="zh-CN" href="${SITE}/zh/" />`,
-    `<link rel="alternate" hreflang="x-default" href="${SITE}/" />`,
-    `<meta name="robots" content="index, follow" />`,
-    `<meta property="og:type" content="website" />`,
+    `<link rel="alternate" hreflang="en" href="${enUrl}" />`,
+    `<link rel="alternate" hreflang="zh-CN" href="${zhUrl}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${enUrl}" />`,
+    `<meta name="robots" content="index, follow, max-image-preview:large" />`,
+    `<meta property="og:type" content="${pg.kind === 'article' ? 'article' : 'website'}" />`,
     `<meta property="og:site_name" content="QRCode666" />`,
     `<meta property="og:url" content="${url}" />`,
-    `<meta property="og:title" content="${esc(t.meta.ogTitle)}" />`,
-    `<meta property="og:description" content="${esc(t.meta.ogDescription)}" />`,
+    `<meta property="og:title" content="${esc(ogTitle)}" />`,
+    `<meta property="og:description" content="${esc(ogDescription)}" />`,
     `<meta property="og:image" content="${image}" />`,
     `<meta property="og:image:width" content="1200" />`,
     `<meta property="og:image:height" content="630" />`,
@@ -61,46 +139,10 @@ function head(lang) {
     `<meta property="og:locale" content="${OG_LOCALE[lang]}" />`,
     `<meta property="og:locale:alternate" content="${OG_LOCALE[lang === 'en' ? 'zh' : 'en']}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
-    `<meta name="twitter:title" content="${esc(t.meta.ogTitle)}" />`,
-    `<meta name="twitter:description" content="${esc(t.meta.ogDescription)}" />`,
+    `<meta name="twitter:title" content="${esc(ogTitle)}" />`,
+    `<meta name="twitter:description" content="${esc(ogDescription)}" />`,
     `<meta name="twitter:image" content="${image}" />`,
-    jsonLd({
-      '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'WebApplication',
-          '@id': `${SITE}/#app`,
-          name: 'QRCode666',
-          url,
-          description: t.meta.description,
-          applicationCategory: 'UtilitiesApplication',
-          operatingSystem: 'Any (web browser)',
-          browserRequirements: 'Requires JavaScript',
-          inLanguage: HTML_LANG[lang],
-          isAccessibleForFree: true,
-          license: 'https://opensource.org/license/mit',
-          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-          featureList: Object.values(t.generator.types).join(', '),
-        },
-        {
-          '@type': 'WebSite',
-          '@id': `${SITE}/#website`,
-          name: 'QRCode666',
-          url: `${SITE}/`,
-          inLanguage: ['en', 'zh-CN'],
-        },
-        {
-          '@type': 'FAQPage',
-          '@id': `${url}#faq`,
-          inLanguage: HTML_LANG[lang],
-          mainEntity: t.faq.items.map((i) => ({
-            '@type': 'Question',
-            name: i.q,
-            acceptedAnswer: { '@type': 'Answer', text: i.a },
-          })),
-        },
-      ],
-    }),
+    structuredData(lang, pg, url),
   ]
   return tags.join('\n    ')
 }
@@ -116,19 +158,26 @@ const preloads = [/^inter-latin-wght-normal-.*\.woff2$/, /^instrument-serif-lati
   .map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`)
   .join('\n    ')
 
-function page(lang) {
+function page(lang, pg) {
   let html = template
     .replace('<html lang="en">', `<html lang="${HTML_LANG[lang]}">`)
     .replace('<!--csp-->', cspTag)
-    .replace(/<!--head:start-->[\s\S]*?<!--head:end-->/, `${head(lang)}\n    ${preloads}`)
-    .replace('<!--app-html-->', render(lang))
+    .replace(/<!--head:start-->[\s\S]*?<!--head:end-->/, `${head(lang, pg)}\n    ${preloads}`)
+    .replace('<!--app-html-->', render(lang, pg))
   if (cssLink) html = html.replace(cssLink[0], inlineCss)
   return html
 }
 
-writeFileSync(path.join(dist, 'index.html'), page('en'))
+// Home pages are index.html files; every other page is <slug>.html, which
+// Cloudflare Pages (and vite preview) serve at the clean URL /<slug>.
 mkdirSync(path.join(dist, 'zh'), { recursive: true })
-writeFileSync(path.join(dist, 'zh', 'index.html'), page('zh'))
+for (const pg of ALL_PAGES) {
+  const slug = pageSlug(pg)
+  for (const lang of ['en', 'zh']) {
+    const dir = lang === 'zh' ? path.join(dist, 'zh') : dist
+    writeFileSync(path.join(dir, slug ? `${slug}.html` : 'index.html'), page(lang, pg))
+  }
+}
 
 // 404: static, bilingual, no application JavaScript needed.
 const css = (template.match(/<link rel="stylesheet"[^>]*>/) || [''])[0]
@@ -168,18 +217,21 @@ const notFound = `<!doctype html>
 `
 writeFileSync(path.join(dist, '404.html'), notFound)
 
-const today = new Date().toISOString().slice(0, 10)
-const alternates = `<xhtml:link rel="alternate" hreflang="en" href="${SITE}/"/><xhtml:link rel="alternate" hreflang="zh-CN" href="${SITE}/zh/"/><xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/"/>`
+const urls = ALL_PAGES.flatMap((pg) => {
+  const en = abs(pagePath(pg, 'en'))
+  const zh = abs(pagePath(pg, 'zh'))
+  const alternates = `<xhtml:link rel="alternate" hreflang="en" href="${en}"/><xhtml:link rel="alternate" hreflang="zh-CN" href="${zh}"/><xhtml:link rel="alternate" hreflang="x-default" href="${en}"/>`
+  return [en, zh].map((loc) => `  <url><loc>${loc}</loc><lastmod>${today}</lastmod>${alternates}</url>`)
+})
 writeFileSync(
   path.join(dist, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url><loc>${SITE}/</loc><lastmod>${today}</lastmod>${alternates}</url>
-  <url><loc>${SITE}/zh/</loc><lastmod>${today}</lastmod>${alternates}</url>
+${urls.join('\n')}
 </urlset>
 `,
 )
 writeFileSync(path.join(dist, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`)
 
 rmSync(path.join(root, 'node_modules', '.cache', 'ssr'), { recursive: true, force: true })
-console.log(`prerendered /, /zh/, /404.html for ${SITE} (${hashes.length} inline script hash)`)
+console.log(`prerendered ${ALL_PAGES.length * 2} pages + /404.html for ${SITE} (${hashes.length} inline script hash)`)

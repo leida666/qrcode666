@@ -12,9 +12,9 @@
 | 检查 | 结果 |
 | --- | --- |
 | TypeScript 类型检查（`npm run typecheck`） | 通过，0 错误 |
-| 单元 + 解码测试（`npm test`） | **114 / 114 通过** |
+| 单元 + 解码测试（`npm test`） | **115 / 115 通过** |
 | 生产构建（`npm run build`） | 成功：预渲染 `/`、`/zh/`、`/404.html`，生成 sitemap、robots |
-| 端到端测试（`npm run test:e2e`，Microsoft Edge） | **44 / 44 通过** |
+| 端到端测试（`npm run test:e2e`，Microsoft Edge） | **59 / 59 通过** |
 | Lighthouse `/` 移动端 | 性能 98 · 无障碍 100 · 最佳实践 100 · SEO 92* |
 | Lighthouse `/` 桌面端 | 性能 100 · 无障碍 100 · 最佳实践 100 · SEO 92* |
 | Lighthouse `/zh/` 移动端 | 性能 98 · 无障碍 100 · 最佳实践 100 · SEO 92* |
@@ -61,6 +61,8 @@ vCard、邮件/电话/短信/位置/日程、空输入（不生成任何二维�
 
 - **新 Logo**：采用你提供的设计（黑色二维码、蓝色定位中心、中间 “666”、下方文字标），用我们自己的编码器重建为矢量图形，扫码结果为 `https://qrcode666.app`。从 140 到 1200 像素共 47 个尺寸，jsQR 和 ZXing 都能识别。原图的天蓝色 `#019eff` 在定位中心会被相机识别为中灰，导致约 15% 的尺寸 jsQR 无法识别，因此 Logo 改用网站主色电光蓝 `#1d4bff`。原图保存在 `brand/original-artwork.webp`。
 - **本地预览时捐款链接回到首页的问题**：`vite preview` 中没有 Cloudflare Function，页面会被直接返回。现在页面的启动脚本识别 `/donate/<机构>` 后会立即跳转到官方捐款页（此时不计数）；部署到 Cloudflare 后由 Function 计数并跳转。
+
+- **SEO 扩展**：新增 9 个按类型划分的生成器落地页（如 `/wifi-qr-code-generator`、`/vcard-qr-code-generator`，生成器自动预选对应类型）和 2 篇指南（`/do-qr-codes-expire`、`/qr-code-stopped-working`），中英文各一套，共 24 个预渲染页面。每页都有独立的标题、描述、规范链接、hreflang、Open Graph 和结构化数据（应用、常见问题、面包屑、文章）；页脚链接到所有页面；sitemap 自动生成。从搜索进入落地页的访客不再自动播放开场动画。为满足对比度要求，次要灰色文字加深（无障碍评分恢复 100）。站外推广清单见 README “SEO: getting found”。
 
 ## 主要技术决策
 

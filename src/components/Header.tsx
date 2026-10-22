@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Menu, Monitor, Moon, Sun, X } from 'lucide-react'
-import { LANG_PATH, useI18n, type Lang } from '../i18n'
+import { useI18n, type Lang } from '../i18n'
+import { pagePath } from '../pages'
 import { useTheme, type ThemePref } from '../lib/theme'
 import { Logo } from './Logo'
 import { cx } from './ui'
@@ -8,7 +9,7 @@ import { cx } from './ui'
 const NEXT_THEME: Record<ThemePref, ThemePref> = { system: 'light', light: 'dark', dark: 'system' }
 
 export function LanguageSwitch({ className }: { className?: string }) {
-  const { lang, setLang, t } = useI18n()
+  const { lang, setLang, t, page } = useI18n()
   const options: { value: Lang; label: string }[] = [
     { value: 'en', label: 'EN' },
     { value: 'zh', label: '中文' },
@@ -18,7 +19,7 @@ export function LanguageSwitch({ className }: { className?: string }) {
       {options.map((o) => (
         <a
           key={o.value}
-          href={LANG_PATH[o.value]}
+          href={pagePath(page, o.value)}
           hrefLang={o.value === 'zh' ? 'zh-CN' : 'en'}
           lang={o.value === 'zh' ? 'zh-CN' : 'en'}
           aria-current={lang === o.value ? 'true' : undefined}
@@ -60,7 +61,7 @@ export function ThemeToggle() {
 }
 
 export function Header() {
-  const { t } = useI18n()
+  const { t, lang, page } = useI18n()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -71,11 +72,15 @@ export function Header() {
     return () => window.removeEventListener('scroll', on)
   }, [])
 
+  // Sections that aren't on this page link to the home page.
+  const home = pagePath({ kind: 'home' }, lang)
+  const here = (id: string) =>
+    page.kind === 'home' || (page.kind === 'type' && (id === 'generator' || id === 'static-vs-dynamic')) ? `#${id}` : `${home}#${id}`
   const links = [
-    { href: '#generator', label: t.nav.generator },
-    { href: '#static-vs-dynamic', label: t.nav.static },
-    { href: '#manifesto', label: t.nav.manifesto },
-    { href: '#faq', label: t.nav.faq },
+    { href: here('generator'), label: t.nav.generator },
+    { href: here('static-vs-dynamic'), label: t.nav.static },
+    { href: here('manifesto'), label: t.nav.manifesto },
+    { href: here('faq'), label: t.nav.faq },
   ]
 
   return (
@@ -86,7 +91,7 @@ export function Header() {
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <a href="#top" className="rounded-lg" aria-label="QRCode666">
+        <a href={page.kind === 'home' ? '#top' : home} className="rounded-lg" aria-label="QRCode666">
           <Logo />
         </a>
         <nav aria-label="Primary" className="hidden md:block">

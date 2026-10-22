@@ -2,12 +2,13 @@ import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { App } from './App'
 import { langFromPath } from './i18n'
+import { pageFromPath } from './pages'
 import './styles.css'
 
 const container = document.getElementById('root')!
 const app = (
   <StrictMode>
-    <App lang={langFromPath(location.pathname)} />
+    <App lang={langFromPath(location.pathname)} page={pageFromPath(location.pathname)} />
   </StrictMode>
 )
 

@@ -226,8 +226,8 @@ test.describe('SEO and accessibility', () => {
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image')
     const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!)
     const types = ld['@graph'].map((n: { '@type': string }) => n['@type'])
-    expect(types).toEqual(['WebApplication', 'WebSite', 'FAQPage'])
-    expect(ld['@graph'][0].offers.price).toBe('0')
+    expect(types).toEqual(['Organization', 'WebSite', 'WebApplication', 'FAQPage'])
+    expect(ld['@graph'][2].offers.price).toBe('0')
     expect(await page.locator('h1').count()).toBe(1)
   })
 

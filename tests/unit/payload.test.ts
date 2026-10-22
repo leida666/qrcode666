@@ -67,6 +67,9 @@ describe('Wi-Fi', () => {
       'WIFI:T:nopass;S:Cafe;;',
     )
   })
+  it('treats an untouched form as empty', () => {
+    expect(buildWifi({ ssid: '', password: '', security: 'WPA', hidden: false }).errors).toEqual(['empty'])
+  })
   it('requires an SSID and (for secured networks) a password', () => {
     expect(buildWifi({ ssid: '', password: 'x', security: 'WPA', hidden: false }).errors).toEqual(['wifiSsidRequired'])
     expect(buildWifi({ ssid: 'x', password: '', security: 'WPA', hidden: false }).errors).toEqual([
@@ -91,8 +94,9 @@ describe('email / phone / sms', () => {
 })
 
 describe('vCard', () => {
-  it('requires a name or organisation', () => {
-    expect(buildVCard(EMPTY_DATA.vcard).errors).toEqual(['vcardNameRequired'])
+  it('treats an untouched form as empty, then requires a name or organisation', () => {
+    expect(buildVCard(EMPTY_DATA.vcard).errors).toEqual(['empty'])
+    expect(buildVCard({ ...EMPTY_DATA.vcard, email: 'a@b.co' }).errors).toEqual(['vcardNameRequired'])
   })
   it('produces a CRLF-separated vCard 3.0', () => {
     const { payload } = buildVCard({ ...EMPTY_DATA.vcard, firstName: 'Ada', lastName: 'Lovelace' })

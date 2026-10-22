@@ -4,6 +4,7 @@ import { CharityLinks } from './Donate'
 import { LanguageSwitch } from './Header'
 import { useIntro } from './Intro'
 import { Logo } from './Logo'
+import { GeneratorLinks, GuideLinks } from './SeoPages'
 
 export function Footer() {
   const { t } = useI18n()
@@ -42,6 +43,16 @@ export function Footer() {
             </div>
           </div>
         </div>
+        <nav aria-label={t.seo.ui.generators} className="mt-12 grid gap-10 border-t border-line pt-10 md:grid-cols-[2fr_1fr]">
+          <div>
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-subtle">{t.seo.ui.generators}</h2>
+            <GeneratorLinks className="mt-4 sm:grid-cols-2 lg:grid-cols-3" />
+          </div>
+          <div>
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-subtle">{t.seo.ui.guides}</h2>
+            <GuideLinks className="mt-4" />
+          </div>
+        </nav>
         <div className="mt-12 flex flex-col gap-2 border-t border-line pt-6 text-[12.5px] text-subtle sm:flex-row sm:justify-between">
           <p>
             © {new Date().getFullYear()} QRCode666 · {t.footer.license}
