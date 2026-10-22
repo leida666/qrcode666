@@ -11,4 +11,10 @@ export const CHARITIES = [
 
 export type CharityId = (typeof CHARITIES)[number]['id']
 
-export const charityUrl = (id: CharityId) => CHARITIES.find((c) => c.id === id)!.url
+/**
+ * Links go through /donate/<org> on our own domain, where a Cloudflare Pages
+ * Function adds one to an anonymous daily tally and redirects to the official
+ * page (see functions/donate/[org].ts). Only the organisation, the day and the
+ * page language are counted.
+ */
+export const donateHref = (id: CharityId, lang: string) => `/donate/${id}?lang=${lang}`

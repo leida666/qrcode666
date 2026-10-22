@@ -12,9 +12,9 @@
 | 检查 | 结果 |
 | --- | --- |
 | TypeScript 类型检查（`npm run typecheck`） | 通过，0 错误 |
-| 单元 + 解码测试（`npm test`） | **104 / 104 通过** |
+| 单元 + 解码测试（`npm test`） | **110 / 110 通过** |
 | 生产构建（`npm run build`） | 成功：预渲染 `/`、`/zh/`、`/404.html`，生成 sitemap、robots |
-| 端到端测试（`npm run test:e2e`，Microsoft Edge） | **42 / 42 通过** |
+| 端到端测试（`npm run test:e2e`，Microsoft Edge） | **43 / 43 通过** |
 | Lighthouse `/` 移动端 | 性能 98 · 无障碍 100 · 最佳实践 100 · SEO 92* |
 | Lighthouse `/` 桌面端 | 性能 100 · 无障碍 100 · 最佳实践 100 · SEO 92* |
 | Lighthouse `/zh/` 移动端 | 性能 98 · 无障碍 100 · 最佳实践 100 · SEO 92* |
@@ -57,6 +57,7 @@ vCard、邮件/电话/短信/位置/日程、空输入（不生成任何二维�
 
 - **开场动画放慢**：总时长从约 4 秒延长到约 6.3 秒。每一幕完整出现后停留片刻再切换（之前第二、三幕在出现过程中就被切走）。调整位置：`src/components/Intro.tsx` 顶部的 `T`。
 - **捐赠（不是给我们）**：新增“想说谢谢？别给我们。”区块，访客可在 **UNICEF（联合国儿童基金会）** 和 **WFP（世界粮食计划署）** 之间选择。页脚和每次下载完成后也会出现同样两个链接。链接指向官方捐款页，不带追踪参数、不传 referrer，并注明“与两家机构均无关联”。链接维护位置：`src/lib/donate.ts`。
+- **捐款点击匿名计数**：捐款链接先经过本站的 `/donate/<机构>`，由 Cloudflare Pages Function 在 D1 数据库中按“日期 + 机构 + 页面语言”累加计数，再 302 跳转到官方捐款页。不读取、不存储 IP、浏览器信息、来源或 Cookie。FAQ 和捐赠区块已如实说明。已在本地用 `wrangler pages dev` + 本地 D1 实测：3 次 UNICEF、1 次 WFP 点击被准确计数，HEAD 请求和未知机构不计数。查看数据的方法见 README “Donation click counts”。
 
 ## 主要技术决策
 

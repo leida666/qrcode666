@@ -25,8 +25,8 @@ test.describe('URL', () => {
     // After a download, a quiet thank-you note points at the charities — not at us.
     const thanks = page.getByTestId('thanks-note')
     await expect(thanks).toBeVisible()
-    await expect(thanks.getByRole('link', { name: /UNICEF/ })).toHaveAttribute('href', 'https://help.unicef.org/global/donate')
-    await expect(thanks.getByRole('link', { name: /WFP/ })).toHaveAttribute('href', 'https://www.wfp.org/donate')
+    await expect(thanks.getByRole('link', { name: /UNICEF/ })).toHaveAttribute('href', '/donate/unicef?lang=en')
+    await expect(thanks.getByRole('link', { name: /WFP/ })).toHaveAttribute('href', '/donate/wfp?lang=en')
   })
 
   test('a scheme-less URL gets https:// and nothing else', async ({ page }) => {

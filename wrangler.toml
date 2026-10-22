@@ -1,0 +1,12 @@
+# Cloudflare Pages configuration (used by both `wrangler pages deploy` and
+# Git-connected builds). The only server-side code is functions/donate/[org].ts.
+name = "qrcode666"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+# Anonymous donation-link click counts (see migrations/).
+[[d1_databases]]
+binding = "DONATIONS_DB"
+database_name = "qrcode666-donations"
+database_id = "00000000-0000-0000-0000-000000000000" # replaced by the real id from `wrangler d1 create`
+migrations_dir = "migrations"

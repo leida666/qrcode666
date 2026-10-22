@@ -273,15 +273,15 @@ test.describe('SEO and accessibility', () => {
 })
 
 test.describe('donations', () => {
-  test('two official choices, opened in a new tab without a referrer', async ({ page }) => {
+  test('two choices, opened in a new tab without a referrer, via the anonymous counter', async ({ page }) => {
     await skipIntro(page)
     await page.goto('/#donate')
     await hydrated(page)
     const section = page.locator('#donate')
     await expect(section.getByRole('heading', { level: 2 })).toHaveText('Say thanks. Just not to us.')
     const links = {
-      unicef: 'https://help.unicef.org/global/donate',
-      wfp: 'https://www.wfp.org/donate',
+      unicef: '/donate/unicef?lang=en',
+      wfp: '/donate/wfp?lang=en',
     }
     for (const [id, href] of Object.entries(links)) {
       const link = section.getByTestId(`donate-${id}`)
@@ -305,4 +305,11 @@ test.describe('donations', () => {
     await expect(section.getByTestId('donate-unicef')).toContainText('捐给 联合国儿童基金会')
     await expect(section.getByTestId('donate-wfp')).toContainText('捐给 世界粮食计划署')
   })
+})
+
+test('Chinese pages tag donation clicks with zh', async ({ page }) => {
+  await skipIntro(page)
+  await page.goto('/zh/#donate')
+  await hydrated(page)
+  await expect(page.locator('#donate').getByTestId('donate-unicef')).toHaveAttribute('href', '/donate/unicef?lang=zh')
 })
