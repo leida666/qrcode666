@@ -63,6 +63,7 @@ export const en = {
       location: 'Location',
       event: 'Event',
     },
+    cameraTip: 'Tip: scan with your phone’s built-in Camera app. In-app scanners (like WeChat’s) may only show this as plain text.',
     typeHint: {
       url: 'Opens a website. The link is stored directly in the code — no redirect.',
       text: 'Any text: notes, codes, messages. Shown as-is when scanned.',

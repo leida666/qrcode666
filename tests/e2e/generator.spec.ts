@@ -232,3 +232,25 @@ test('PNG file on disk matches the downloaded content type', async ({ page }) =>
   const { path } = await downloadFile(page, 'download-png')
   expect(readFileSync(path).subarray(1, 4).toString()).toBe('PNG')
 })
+
+test('a camera tip appears only for formats in-app scanners show as plain text', async ({ page }) => {
+  await openGenerator(page)
+  const tip = page.getByTestId('camera-tip')
+  await expect(tip).toHaveCount(0) // URL
+  await pick(page.getByRole('radio', { name: 'Text' }))
+  await expect(tip).toHaveCount(0)
+  for (const name of ['Wi-Fi', 'Email', 'Phone', 'SMS', 'Contact', 'Location', 'Event']) {
+    await pick(page.getByRole('radio', { name }))
+    await expect(tip, name).toContainText('built-in Camera app')
+  }
+  // A Google Maps location is an ordinary web link, so no tip.
+  await pick(page.getByRole('radio', { name: 'Location' }))
+  await pick(page.getByRole('radio', { name: 'Google Maps link' }))
+  await expect(tip).toHaveCount(0)
+})
+
+test('the camera tip is translated', async ({ page }) => {
+  await openGenerator(page, '/zh/')
+  await pick(page.getByRole('radio', { name: 'Wi-Fi' }))
+  await expect(page.getByTestId('camera-tip')).toHaveText('提示：请用手机自带的相机扫码。微信等 App 内置的扫一扫可能只会显示一串文字。')
+})

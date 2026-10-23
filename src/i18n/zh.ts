@@ -64,6 +64,7 @@ export const zh: Dict = {
       location: '位置',
       event: '日程',
     },
+    cameraTip: '提示：请用手机自带的相机扫码。微信等 App 内置的扫一扫可能只会显示一串文字。',
     typeHint: {
       url: '扫码打开网站。链接直接存储在二维码中，没有任何跳转。',
       text: '任意文本：备注、编号、留言。扫描后原样显示。',

@@ -1,4 +1,5 @@
 import { useCallback, useDeferredValue, useMemo, useState } from 'react'
+import { Camera } from 'lucide-react'
 import { useI18n } from '../../i18n'
 import { DEFAULT_STYLE, generateQr, type QrStyle } from '../../lib/qr'
 import { buildPayload, EMPTY_DATA, type ContentType, type PayloadData } from '../../lib/qr/payload'
@@ -6,6 +7,17 @@ import { SectionHeading } from '../ui'
 import { ContentForm, TypePicker } from './ContentForm'
 import { Preview } from './Preview'
 import { StylePanel, type LogoState } from './StylePanel'
+
+/**
+ * Phones' own Camera apps act on these formats (join Wi-Fi, save a contact,
+ * add an event…), but in-app scanners such as WeChat's only show the raw text.
+ * URLs and plain text behave the same everywhere, so they need no tip.
+ */
+function needsCameraTip(type: ContentType, data: PayloadData): boolean {
+  if (type === 'url' || type === 'text') return false
+  if (type === 'location' && data.location.format === 'maps') return false
+  return true
+}
 
 /** `initialType` presets the content type (landing pages); `heading` hides the section title where the page's H1 already says it. */
 export function Generator({ initialType = 'url', heading = true }: { initialType?: ContentType; heading?: boolean }) {
@@ -48,6 +60,15 @@ export function Generator({ initialType = 'url', heading = true }: { initialType
             <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.12em] text-subtle">{g.contentTitle}</h3>
             <TypePicker value={type} onChange={setType} />
             <p className="mt-4 text-[13.5px] leading-relaxed text-muted">{g.typeHint[type]}</p>
+            {needsCameraTip(type, data) && (
+              <p
+                className="mt-3 flex items-start gap-2 rounded-xl bg-accent-soft px-3 py-2 text-[12.5px] leading-snug text-accent"
+                data-testid="camera-tip"
+              >
+                <Camera className="mt-px size-3.5 shrink-0" aria-hidden />
+                {g.cameraTip}
+              </p>
+            )}
             <div className="mt-5">
               <ContentForm type={type} data={data} onChange={onChange} />
             </div>
