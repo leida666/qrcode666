@@ -9,8 +9,9 @@ you type is sent anywhere.
 
 - 100% free: no paywall, no account, no credit card, no generation or download limits, no watermark
 - Static codes only: `https://virony.ng` is encoded as `https://virony.ng`, never as a short link to us
-- No tracking: no analytics, no cookies, no scan counting. The page's Content-Security-Policy
-  (`connect-src 'none'`) makes it impossible for the page to send network requests at all
+- No tracking: no analytics scripts, no cookies, no scan counting. The only request a page ever makes is an
+  anonymous "+1" with the code type when someone downloads a code (skipped under Do Not Track / Global Privacy
+  Control). The Content-Security-Policy (`connect-src 'self'`) blocks every other destination
 - Essentially a static site: the generator never touches a server. The only server-side code is a tiny
   Cloudflare Pages Function that anonymously counts donation-link clicks. No accounts, no API keys, no paid services
 
@@ -65,7 +66,7 @@ It's used in canonical URLs, Open Graph tags, the sitemap and robots.txt.
 
 QR output is verified by **decoding it**, not by checking that an image exists.
 
-- **Unit + decode tests** (`tests/unit`, 115 tests): payload builders (Wi-Fi escaping, vCard, iCalendar,
+- **Unit + decode tests** (`tests/unit`, 119 tests): payload builders (Wi-Fi escaping, vCard, iCalendar,
   `mailto:`, `tel:`, `SMSTO:`, `geo:`), URL handling, contrast checks capacity limits, and the donation counter Function (counts only org/day/language, ignores HEAD and unknown orgs, still redirects if the database is down). Every QR case is
   rendered to SVG, rasterised with resvg and decoded by two independent decoders, **jsQR** and **ZXing**.
   The decoded text must match the payload exactly. Covered: plain, long and query-heavy URLs, Chinese,
@@ -73,11 +74,11 @@ QR output is verified by **decoding it**, not by checking that an image exists.
   types at the capacity limit (exactly `MAX_BYTES` fits, one more byte is rejected), every module × eye ×
   EC combination at several pixel sizes, every preset, transparent backgrounds, tiny quiet zones, and logos
   at the maximum allowed size.
-- **End-to-end tests** (`tests/e2e`, 59 tests, Playwright with the locally installed Microsoft Edge):
+- **End-to-end tests** (`tests/e2e`, 65 tests, Playwright with the locally installed Microsoft Edge):
   real downloads of PNG (all four sizes) and SVG, each decoded with jsQR + ZXing; URL, long URL, Chinese,
   emoji, special characters, Wi-Fi, vCard; empty input; over-capacity input; logo upload; presets;
-  transparent PNG alpha; low-contrast blocking; **no network requests** while typing, uploading and
-  downloading (and the CSP really blocks `fetch`); intro playback, timing, skip, Esc, replay and
+  transparent PNG alpha; low-contrast blocking; **no requests** while typing or uploading, exactly one anonymous "+1" per download carrying only the code
+  type, none under Global Privacy Control, and the CSP really blocks third-party `fetch`; intro playback, timing, skip, Esc, replay and
   reduced motion; language switching, auto-detection and localised errors; light/dark themes; mobile
   layout with no horizontal scroll; keyboard-only use; SEO metadata, sitemap, manifest and 404; and the
   hero animation really scanning; every landing page and guide (own title, canonical, hreflang, one H1, structured data, clean hydration, preset type, a real Wi-Fi code from the Wi-Fi page, language switching that stays on the page, sitemap with all 24 URLs); donation links (via the counter, per language, new tab, no referrer) and the post-download thank-you note.
@@ -102,9 +103,8 @@ PW_CHANNEL=chromium npm run test:e2e
 
 Mobile: FCP 1.4 s, LCP 2.2 s, TBT 10 ms, CLS 0.
 
-\* The only failing SEO audit is `robots-txt`: Lighthouse fetches `robots.txt` from inside the page, and our
-privacy CSP (`connect-src 'none'`) blocks that fetch. Search engines request `robots.txt` directly, and it is
-served normally. We keep the CSP: it is what guarantees your input can't leave the page.
+\* Measured while the CSP was `connect-src 'none'`, which blocked Lighthouse's in-page fetch of `robots.txt`.
+The CSP now allows the page's own origin (for the download counter), so that audit should pass too.
 
 ## SEO: getting found
 
@@ -216,7 +216,15 @@ Each click on a donation link goes to `/donate/<org>?lang=<en|zh>`. The Function
 for *(UTC day, organisation, page language)* and redirects to the official page. It doesn't read or store an IP
 address, user agent, referrer or cookie. `HEAD` requests (link previews) and unknown organisations aren't counted.
 
-To see the numbers, open **Storage & Databases → D1 → qrcode666-donations → Console** in the dashboard and run:
+Downloads are counted the same way: each download sends one `POST /api/used` whose body is only the code type, and
+`functions/api/used.ts` adds one to the `usage` table (day, type). To see both, open **Storage & Databases → D1 →
+qrcode666-donations → Console** in the dashboard and run, for downloads:
+
+```sql
+SELECT type, SUM(uses) AS downloads FROM usage GROUP BY type ORDER BY downloads DESC;
+```
+
+and for donation clicks:
 
 ```sql
 SELECT org, lang, SUM(clicks) AS clicks FROM donation_clicks GROUP BY org, lang;
@@ -269,8 +277,9 @@ redirects to the charity before anything renders. The link still works, but that
   36 % width (Q) and 40 % (H), so the caps are 22 % and 26 %. Rounded *alignment* patterns measurably hurt ZXing's
   detector, so the "rounded" style keeps alignment patterns square. Gapped styles (dots, soft) keep finder and
   alignment patterns solid for the same reason.
-- **Privacy is enforced by the browser.** The CSP's `connect-src 'none'` blocks every `fetch`/XHR/beacon, and the
-  e2e suite asserts that no request is made. Fonts and scripts are self-hosted, and inline scripts are allowed by
+- **Privacy is enforced by the browser.** The CSP's `connect-src 'self'` blocks every third-party `fetch`/XHR/beacon.
+  The only request the page makes is the anonymous per-download "+1" to `/api/used` (code type only, stored as a
+  daily count in D1), and the e2e suite asserts exactly that. Fonts and scripts are self-hosted, and inline scripts are allowed by
   hash only.
 - **Honest copy.** The FAQ explains that a static code cannot be edited, that a link inside a code can still die,
   that Cloudflare processes standard request data such as IP addresses, and exactly what is kept in browser storage

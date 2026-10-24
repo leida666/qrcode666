@@ -69,6 +69,8 @@ vCard、邮件/电话/短信/位置/日程、空输入（不生成任何二维�
 - **正式域名已生效**：https://qrcode666.app 和 https://www.qrcode666.app 均已绑定并签发 HTTPS 证书，http 自动跳转到 https；www 页面的规范链接指向主域名。所有页面、404、安全响应头和捐款跳转均已在正式域名下验证通过。
 - **需要关闭 Cloudflare Web Analytics**：Cloudflare 会自动向该域名下的页面注入统计脚本（`static.cloudflareinsights.com/beacon.min.js`）。我们的安全策略已经拦截了它，没有收集任何数据，但仍应在后台关闭：qrcode666.app → Analytics & Logs → Web Analytics。
 
+- **匿名使用量统计**：每次下载二维码，页面向本站 `/api/used` 发送一个匿名“+1”，只包含二维码类型；数据按“日期 + 类型”累加，存在 D1 的 `usage` 表中。浏览器开启“请勿追踪”或全局隐私控制时不发送。安全策略由禁止一切请求改为只允许发往本站。FAQ 已如实说明。捐款链接加上 nofollow，robots.txt 屏蔽 `/donate/` 和 `/api/`，被爬虫刷高的旧捐款计数已清零。
+
 ## 主要技术决策
 
 - React 19 + TypeScript + Vite 8 + Tailwind CSS 4。构建时预渲染为静态 HTML，客户端再接管（hydration），无需服务器。

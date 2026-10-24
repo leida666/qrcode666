@@ -3,7 +3,8 @@ import { Check, Copy, Download, Lock } from 'lucide-react'
 import { useI18n } from '../../i18n'
 import { downloadBlob, renderPng, svgBlob } from '../../lib/qr/export'
 import { DEFAULT_STYLE, generateQr, isBlocking, MAX_BYTES, toSvg, utf8Length, type QrOutcome, type QrStyle } from '../../lib/qr'
-import type { PayloadIssue } from '../../lib/qr/payload'
+import type { ContentType, PayloadIssue } from '../../lib/qr/payload'
+import { reportUse } from '../../lib/usage'
 import { CharityLinks } from '../Donate'
 import { Notice, cx } from '../ui'
 
@@ -22,9 +23,10 @@ interface PreviewProps {
   hints: PayloadIssue[]
   style: QrStyle
   filePrefix: string
+  contentType: ContentType
 }
 
-export function Preview({ payload, outcome, errors, hints, style, filePrefix }: PreviewProps) {
+export function Preview({ payload, outcome, errors, hints, style, filePrefix, contentType }: PreviewProps) {
   const { t } = useI18n()
   const g = t.generator
   const [pngSize, setPngSize] = useState<(typeof PNG_SIZES)[number]>(1024)
@@ -53,6 +55,7 @@ export function Preview({ payload, outcome, errors, hints, style, filePrefix }: 
       const blob = kind === 'png' ? await renderPng(result, pngSize) : svgBlob(toSvg(result, pngSize))
       downloadBlob(blob, name)
       setDownloaded(true)
+      reportUse(contentType)
     } catch {
       setFailed(true)
     } finally {

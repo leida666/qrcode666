@@ -202,28 +202,58 @@ test('unreadable colour contrast blocks downloads', async ({ page }) => {
   await expect(page.getByTestId('download-png')).toBeEnabled()
 })
 
-test('nothing is sent over the network while generating and downloading', async ({ page }) => {
+test('the only request is an anonymous +1 per download, and it never carries what you typed', async ({ page }) => {
   await openGenerator(page)
   await page.waitForLoadState('networkidle')
   const requests: string[] = []
+  const beacons: { method: string; body: string | null }[] = []
+  // vite preview has no Functions, so answer the counter like production does.
+  await page.route('**/api/used', (route) => {
+    beacons.push({ method: route.request().method(), body: route.request().postData() })
+    return route.fulfill({ status: 204 })
+  })
   page.on('request', (r) => requests.push(r.url()))
   await page.getByTestId('input-url').fill('https://secret.example.com/private?token=abc123')
   await page.getByTestId('logo-input').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: logoPngBuffer() })
-  await downloadAndDecodePng(page)
-  await downloadAndDecodeSvg(page)
-  // Only browser-internal data:/blob: URLs may appear — never an http(s) request.
+  // Typing and adding a logo send nothing.
   expect(requests.filter((u) => /^https?:/.test(u))).toEqual([])
 
+  await downloadAndDecodePng(page)
+  await downloadAndDecodeSvg(page)
+  await expect.poll(() => beacons.length).toBe(2)
+  // Every download is one "+1" carrying only the code type.
+  expect(beacons).toEqual([
+    { method: 'POST', body: 'url' },
+    { method: 'POST', body: 'url' },
+  ])
+  const sent = requests.filter((u) => /^https?:/.test(u))
+  expect(sent.every((u) => new URL(u).pathname === '/api/used')).toBe(true)
+  expect(JSON.stringify(beacons)).not.toContain('secret')
+
+  // The policy allows our own origin only: anything else is blocked.
   const csp = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content')
-  expect(csp).toContain("connect-src 'none'")
-  // The policy is enforced: any attempt to phone home fails.
+  expect(csp).toContain("connect-src 'self'")
   const blocked = await page.evaluate(() =>
-    fetch('/robots.txt').then(
+    fetch('https://example.com/').then(
       () => false,
       () => true,
     ),
   )
   expect(blocked).toBe(true)
+})
+
+test('no +1 is sent when the browser asks not to be tracked', async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, 'globalPrivacyControl', { value: true }))
+  await openGenerator(page)
+  let beacons = 0
+  await page.route('**/api/used', (route) => {
+    beacons++
+    return route.fulfill({ status: 204 })
+  })
+  await page.getByTestId('input-url').fill('https://example.com/gpc')
+  await downloadAndDecodePng(page)
+  await page.waitForTimeout(500)
+  expect(beacons).toBe(0)
 })
 
 test('PNG file on disk matches the downloaded content type', async ({ page }) => {

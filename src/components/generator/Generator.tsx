@@ -97,6 +97,7 @@ export function Generator({ initialType = 'url', heading = true }: { initialType
                 hints={payloadResult.hints}
                 style={style}
                 filePrefix={`qrcode666-${type}`}
+                contentType={type}
               />
             </div>
           </aside>

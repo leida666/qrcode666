@@ -6,7 +6,7 @@ import { SectionHeading } from './ui'
 // Links pass through /donate/<org>, which adds one to an anonymous daily tally
 // (organisation, day, page language — nothing about the person) and redirects
 // to the official page. No tracking parameters and no referrer are passed on.
-const external = { target: '_blank', rel: 'noopener noreferrer' } as const
+const external = { target: '_blank', rel: 'noopener noreferrer nofollow' } as const
 
 /** "UNICEF or WFP" as inline links, for the footer and the post-download note. */
 export function CharityLinks({ className = 'underline decoration-line-strong underline-offset-4 hover:text-fg hover:decoration-fg' }) {

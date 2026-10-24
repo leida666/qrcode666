@@ -27,7 +27,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'none'",
+  // The only request a page makes is the anonymous "+1" to our own /api/used.
+  "connect-src 'self'",
   "manifest-src 'self'",
   "worker-src 'none'",
   "frame-src 'none'",
@@ -239,7 +240,8 @@ ${urls.join('\n')}
 </urlset>
 `,
 )
-writeFileSync(path.join(dist, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`)
+// The counting endpoints are for people's clicks and downloads, not crawlers.
+writeFileSync(path.join(dist, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /donate/\nDisallow: /api/\n\nSitemap: ${SITE}/sitemap.xml\n`)
 
 rmSync(path.join(root, 'node_modules', '.cache', 'ssr'), { recursive: true, force: true })
 console.log(`prerendered ${ALL_PAGES.length * 2} pages + /404.html for ${SITE} (${hashes.length} inline script hash)`)
