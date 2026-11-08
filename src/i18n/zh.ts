@@ -308,6 +308,7 @@ export const zh: Dict = {
     noCookies: '没有 Cookie，没有追踪，不用注册。',
     trademark: 'QR Code 是 DENSO WAVE INCORPORATED 的注册商标。',
     top: '回到顶部',
+    stats: '使用统计',
   },
   notFound: {
     title: '这个页面不存在。',

@@ -327,3 +327,9 @@ test('the footer links to the public source code', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('footer').getByTestId('repo-link')).toHaveAttribute('href', 'https://github.com/leida666/qrcode666')
 })
+
+test('the footer links to the public usage stats', async ({ page }) => {
+  await skipIntro(page)
+  await page.goto('/')
+  await expect(page.locator('footer').getByTestId('stats-link')).toHaveAttribute('href', '/stats')
+})

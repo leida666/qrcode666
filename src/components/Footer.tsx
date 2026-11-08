@@ -59,6 +59,10 @@ export function Footer() {
             © {new Date().getFullYear()} QRCode666 ·{' '}
             <a href={REPO_URL} className="underline decoration-line-strong underline-offset-4 hover:text-fg" data-testid="repo-link">
               {t.footer.license}
+            </a>{' '}
+            ·{' '}
+            <a href="/stats" className="underline decoration-line-strong underline-offset-4 hover:text-fg" data-testid="stats-link">
+              {t.footer.stats}
             </a>
           </p>
           <p>{t.footer.trademark}</p>

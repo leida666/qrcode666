@@ -308,6 +308,7 @@ export const en = {
     noCookies: 'No cookies. No trackers. No accounts.',
     trademark: 'QR Code is a registered trademark of DENSO WAVE INCORPORATED.',
     top: 'Back to top',
+    stats: 'Usage stats',
   },
   notFound: {
     title: 'This page doesn’t exist.',

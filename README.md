@@ -216,6 +216,10 @@ Each click on a donation link goes to `/donate/<org>?lang=<en|zh>`. The Function
 for *(UTC day, organisation, page language)* and redirects to the official page. It doesn't read or store an IP
 address, user agent, referrer or cookie. `HEAD` requests (link previews) and unknown organisations aren't counted.
 
+**Public stats page:** https://qrcode666.app/stats shows total codes made, today and the last 7 and 30 days, a
+daily chart and a per-type breakdown. It is rendered on the server by `functions/stats.ts`, runs no scripts, is
+marked noindex and is cached for 60 seconds.
+
 Downloads are counted the same way: each download sends one `POST /api/used` whose body is only the code type, and
 `functions/api/used.ts` adds one to the `usage` table (day, type). To see both, open **Storage & Databases → D1 →
 qrcode666-donations → Console** in the dashboard and run, for downloads:
